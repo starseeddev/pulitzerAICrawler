@@ -5,6 +5,18 @@ import { ArticlesService } from '../articles/articles.service';
 
 @Injectable()
 export class ScrapingService {
+  private static readonly categories = [
+    'economy',
+    'politics',
+    'trend',
+    'national',
+    'international',
+    'medical',
+    'investment',
+    'sports',
+    'culture-style',
+  ];
+
   constructor(
     private readonly reportersService: ReportersService,
     private readonly articlesService: ArticlesService,
@@ -71,26 +83,28 @@ export class ScrapingService {
   }
 
   async crawlChosunNational() {
+    const browser = await puppeteer.launch({ headless: 'new' });
+    const page = await browser.newPage();
+
     try {
-      const browser = await puppeteer.launch({ headless: 'new' });
-      const page = await browser.newPage();
+      for (const category of ScrapingService.categories) {
+        const url = `https://www.chosun.com/${category}/`;
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-      const url = 'https://www.chosun.com/economy/';
-      await page.goto(url, { waitUntil: 'domcontentloaded' });
+        const articles = await page.$$(
+          'div.story-card-wrapper a.story-card__headline',
+        );
 
-      const articles = await page.$$(
-        'div.story-card-wrapper a.story-card__headline',
-      );
-
-      for (const article of articles) {
-        const link = await page.evaluate((el) => el.href, article);
-        console.log(`Link: ${link}`);
-        await this.crawlChosunArticle(link);
+        for (const article of articles) {
+          const link = await page.evaluate((el) => el.href, article);
+          console.log(`Link: ${link}`);
+          await this.crawlChosunArticle(link);
+        }
       }
-
-      await browser.close();
     } catch (error) {
       console.error(`에러: ${error}`);
+    } finally {
+      await browser.close();
     }
   }
 }

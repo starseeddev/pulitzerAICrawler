@@ -17,6 +17,7 @@ export class ArticlesService {
     title: string,
     content: string,
     link: string,
+    createdAt: Date | null, // Add createdAt parameter
   ): Promise<Article | undefined> {
     const reporter =
       await this.reportersService.getReporterByEmail(reporterEmail);
@@ -32,6 +33,7 @@ export class ArticlesService {
       content,
       reporter,
       link,
+      createdAt: createdAt || new Date(), // Use the provided date or the current date
     });
     return await this.articlesRepository.save(article);
   }

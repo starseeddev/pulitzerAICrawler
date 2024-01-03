@@ -14,13 +14,11 @@ import { ArticlesService } from './articles/articles.service';
     TestModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host:
-        process.env.DB_HOST ||
-        'pulitzer-ai.ctg2ok06s7t6.ap-northeast-2.rds.amazonaws.com',
-      port: Number(process.env.DB_PORT) || 5432,
-      username: process.env.DB_USERNAME || 'pulitzerai',
-      password: process.env.DB_PASSWORD || '2025aipulitzer', //
-      database: process.env.DB_DATABASE || 'pulitzeraidb',
+      host: 'pulitzer-crawler.ctg2ok06s7t6.ap-northeast-2.rds.amazonaws.com',
+      port: 5432,
+      username: 'pulitzerCrawler',
+      password: 'qwer1234',
+      database: 'crawlerdb',
       entities: [Reporter, Article], // Add your entities here
       synchronize: true,
       ssl: {

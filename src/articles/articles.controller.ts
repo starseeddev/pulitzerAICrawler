@@ -13,6 +13,7 @@ export class ArticlesController {
       title: string;
       content: string;
       link: string;
+      createdAt: Date | null; // Add createdAt parameter
     },
   ) {
     return await this.articlesService.createArticle(
@@ -20,6 +21,7 @@ export class ArticlesController {
       body.title,
       body.content,
       body.link,
+      body.createdAt,
     );
   }
 }

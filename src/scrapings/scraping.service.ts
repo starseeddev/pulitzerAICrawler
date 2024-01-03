@@ -22,7 +22,32 @@ export class ScrapingService {
     private readonly articlesService: ArticlesService,
   ) {}
 
-  async crawlChosunArticle(link: string) {
+  private mapCategoryToKorean(category: string): string {
+    switch (category) {
+      case 'economy':
+        return '경제';
+      case 'politics':
+        return '정치';
+      case 'trend':
+        return '트렌드';
+      case 'national':
+        return '사회';
+      case 'international':
+        return '국제';
+      case 'medical':
+        return '건강';
+      case 'investment':
+        return '투자';
+      case 'sports':
+        return '스포츠';
+      case 'culture-style':
+        return '문화';
+      default:
+        return category;
+    }
+  }
+
+  async crawlChosunArticle(link: string, categories: string[]) {
     try {
       const browser = await puppeteer.launch({ headless: 'new' });
       const page = await browser.newPage();
@@ -49,10 +74,23 @@ export class ScrapingService {
       );
       console.log(`Article Body: ${articleBody}`);
 
+      // Ensure categories and media have default values
+      const defaultCategories: string[] = [];
+      const defaultMedia: string = '조선일보';
+
+      // Extract and parse the date
+      const dateText = await page.$eval(
+        '.inputDate',
+        (element) => element.textContent,
+      );
+      const createdAt = this.parseDate(dateText);
+
       // Update or create the reporter in the database
       const reporter = await this.reportersService.createReporter(
         authorEmail,
         authorName,
+        categories.length > 0 ? categories : defaultCategories,
+        defaultMedia,
       );
 
       // Update or create the article in the database
@@ -61,6 +99,7 @@ export class ScrapingService {
         title,
         articleBody,
         link,
+        createdAt,
       );
 
       await browser.close();
@@ -82,6 +121,14 @@ export class ScrapingService {
     return authorEmailWithQuery.split('?')[0];
   }
 
+  private parseDate(dateText: string): Date | null {
+    const match = dateText.match(/\d{4}\.\d{2}\.\d{2}\. \d{2}:\d{2}/);
+    if (match) {
+      return new Date(match[0].replace(/\./g, '/')); // Convert the date string to a valid Date object
+    }
+    return null;
+  }
+
   async crawlChosunNational() {
     const browser = await puppeteer.launch({ headless: 'new' });
     const page = await browser.newPage();
@@ -95,10 +142,13 @@ export class ScrapingService {
           'div.story-card-wrapper a.story-card__headline',
         );
 
-        for (const article of articles) {
+        for (let i = 10; i < Math.min(10, articles.length); i++) {
+          const article = articles[i];
           const link = await page.evaluate((el) => el.href, article);
           console.log(`Link: ${link}`);
-          await this.crawlChosunArticle(link);
+          await this.crawlChosunArticle(link, [
+            this.mapCategoryToKorean(category),
+          ]);
         }
       }
     } catch (error) {

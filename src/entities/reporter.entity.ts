@@ -12,6 +12,12 @@ export class Reporter {
   @Column()
   name: string;
 
+  @Column('simple-array')
+  categories: string[];
+
+  @Column() // Remove the default value
+  media: string;
+
   @OneToMany(() => Article, (article) => article.reporter)
   articles: Article[];
 }

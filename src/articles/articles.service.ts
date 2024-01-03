@@ -16,6 +16,7 @@ export class ArticlesService {
     reporterEmail: string,
     title: string,
     content: string,
+    link: string,
   ): Promise<Article | undefined> {
     const reporter =
       await this.reportersService.getReporterByEmail(reporterEmail);
@@ -30,6 +31,7 @@ export class ArticlesService {
       title,
       content,
       reporter,
+      link,
     });
     return await this.articlesRepository.save(article);
   }

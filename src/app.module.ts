@@ -16,10 +16,10 @@ import { ArticlesService } from './articles/articles.service';
       type: 'postgres',
       host:
         process.env.DB_HOST ||
-        'pulitzer-ai.c7uosqgw0pku.ap-northeast-2.rds.amazonaws.com',
+        'pulitzer-ai.ctg2ok06s7t6.ap-northeast-2.rds.amazonaws.com',
       port: Number(process.env.DB_PORT) || 5432,
       username: process.env.DB_USERNAME || 'pulitzerai',
-      password: process.env.DB_PASSWORD || 'qwer1234',
+      password: process.env.DB_PASSWORD || '2025aipulitzer', //
       database: process.env.DB_DATABASE || 'pulitzeraidb',
       entities: [Reporter, Article], // Add your entities here
       synchronize: true,

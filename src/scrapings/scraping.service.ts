@@ -48,6 +48,7 @@ export class ScrapingService {
         reporter.email,
         title,
         articleBody,
+        link,
       );
 
       await browser.close();
@@ -74,7 +75,7 @@ export class ScrapingService {
       const browser = await puppeteer.launch({ headless: 'new' });
       const page = await browser.newPage();
 
-      const url = 'https://www.chosun.com/national/';
+      const url = 'https://www.chosun.com/economy/';
       await page.goto(url, { waitUntil: 'domcontentloaded' });
 
       const articles = await page.$$(

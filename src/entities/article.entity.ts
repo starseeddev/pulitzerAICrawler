@@ -12,6 +12,9 @@ export class Article {
   @Column()
   content: string;
 
+  @Column({ unique: true }) // Unique 제약 조건 추가
+  link: string;
+
   @ManyToOne(() => Reporter, (reporter) => reporter.articles)
   reporter: Reporter;
 }

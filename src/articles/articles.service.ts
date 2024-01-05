@@ -17,6 +17,7 @@ export class ArticlesService {
     title: string,
     content: string,
     link: string,
+    keywords: string[],
     createdAt: Date | null, // Add createdAt parameter
   ): Promise<Article | undefined> {
     const reporter =
@@ -33,6 +34,7 @@ export class ArticlesService {
       content,
       reporter,
       link,
+      keywords,
       createdAt: createdAt || new Date(), // Use the provided date or the current date
     });
     return await this.articlesRepository.save(article);

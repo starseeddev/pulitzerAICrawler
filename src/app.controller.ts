@@ -10,7 +10,7 @@ export class AppController {
     private readonly scrapingService: ScrapingService,
   ) {}
 
-  @Get()
+  @Get('/test')
   getHello(): string {
     return this.appService.getHello();
   }

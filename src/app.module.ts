@@ -16,11 +16,11 @@ import { ArticlesService } from './articles/articles.service';
       type: 'postgres',
       host:
         process.env.DB_HOST ||
-        'pulitzer-crawler.ctg2ok06s7t6.ap-northeast-2.rds.amazonaws.com',
+        'pulitzercrawlinginstance.ctg2ok06s7t6.ap-northeast-2.rds.amazonaws.com',
       port: Number(process.env.DB_PORT) || 5432,
-      username: process.env.DB_USERNAME || 'pulitzerCrawler',
+      username: process.env.DB_USERNAME || 'pulitzerCrawling',
       password: process.env.DB_PASSWORD || 'qwer1234',
-      database: process.env.DB_DATABASE || 'crawlerdb',
+      database: process.env.DB_DATABASE || 'pulitzerCrawlingDB',
       entities: [Reporter, Article], // Add your entities here
       synchronize: true,
       ssl: {

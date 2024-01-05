@@ -21,6 +21,9 @@ export class Article {
   @Column({ unique: true }) // Unique 제약 조건 추가
   link: string;
 
+  @Column('simple-array')
+  keywords: string[];
+
   @CreateDateColumn() // 생성 시간을 저장하는 컬럼
   createdAt: Date;
 

@@ -99,6 +99,7 @@ export class ScrapingService {
         title,
         articleBody,
         link,
+        [],
         createdAt,
       );
 
@@ -142,7 +143,7 @@ export class ScrapingService {
           'div.story-card-wrapper a.story-card__headline',
         );
 
-        for (let i = 0; i < Math.min(15, articles.length); i++) {
+        for (let i = 0; i < Math.min(10, articles.length); i++) {
           const article = articles[i];
           const link = await page.evaluate((el) => el.href, article);
           console.log(`Link: ${link}`);

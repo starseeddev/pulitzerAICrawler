@@ -13,6 +13,7 @@ export class ArticlesController {
       title: string;
       content: string;
       link: string;
+      keywords: string[];
       createdAt: Date | null; // Add createdAt parameter
     },
   ) {
@@ -21,6 +22,7 @@ export class ArticlesController {
       body.title,
       body.content,
       body.link,
+      body.keywords || [],
       body.createdAt,
     );
   }

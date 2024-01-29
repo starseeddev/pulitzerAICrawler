@@ -3,7 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TestModule } from './test.module';
-import { ScrapingService } from './scrapings/scraping.service';
+import { ChosunService } from './scrapings/chosun.service';
+import { JoongangService } from './scrapings/joongang.service';
 import { Article } from './entities/article.entity';
 import { Reporter } from './entities/reporter.entity';
 import { ReportersService } from './reporters/reporters.service';
@@ -30,6 +31,12 @@ import { ArticlesService } from './articles/articles.service';
     TypeOrmModule.forFeature([Reporter, Article]),
   ],
   controllers: [AppController],
-  providers: [AppService, ScrapingService, ArticlesService, ReportersService],
+  providers: [
+    AppService,
+    ChosunService,
+    JoongangService,
+    ArticlesService,
+    ReportersService,
+  ],
 })
 export class AppModule {}

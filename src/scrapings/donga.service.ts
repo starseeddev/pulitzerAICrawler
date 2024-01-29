@@ -4,17 +4,15 @@ import { ReportersService } from '../reporters/reporters.service';
 import { ArticlesService } from '../articles/articles.service';
 
 @Injectable()
-export class ScrapingService {
+export class DongaService {
   private static readonly categories = [
-    'economy',
-    'politics',
-    'trend',
-    'national',
-    'international',
-    'medical',
-    'investment',
-    'sports',
-    'culture-style',
+    'Politics',
+    'Economy',
+    'Inter',
+    'Society',
+    'Culture',
+    'Sports',
+    'Health',
   ];
 
   constructor(
@@ -24,30 +22,26 @@ export class ScrapingService {
 
   private mapCategoryToKorean(category: string): string {
     switch (category) {
-      case 'economy':
+      case 'Economy':
         return '경제';
-      case 'politics':
+      case 'Politics':
         return '정치';
-      case 'trend':
-        return '트렌드';
-      case 'national':
-        return '사회';
-      case 'international':
+      case 'Inter':
         return '국제';
-      case 'medical':
-        return '건강';
-      case 'investment':
-        return '투자';
-      case 'sports':
-        return '스포츠';
-      case 'culture-style':
+      case 'Society':
+        return '사회';
+      case 'culture':
         return '문화';
+      case 'Sports':
+        return '스포츠';
+      case 'Health':
+        return '건강';
       default:
         return category;
     }
   }
 
-  async crawlChosunArticle(link: string, categories: string[]) {
+  async crawlDongaArticle(link: string, categories: string[]) {
     try {
       const browser = await puppeteer.launch({ headless: 'new' });
       const page = await browser.newPage();
@@ -55,32 +49,30 @@ export class ScrapingService {
       await page.goto(link, { waitUntil: 'domcontentloaded' });
 
       // Extract the title
-      const title = await page.$eval('h1', (element) => element.textContent);
+      const title = await page.$eval('h1.headline', (element) =>
+        element.textContent.trim(),
+      );
       console.log(`Title: ${title}`);
 
-      const authorEmail = await this.extractAuthorEmail(page);
-      console.log(`Author Email: ${authorEmail}`);
-
-      const authorName = await page.$eval(
-        '.author-card--content-header .byline',
-        (element) => element.textContent.trim(),
+      const { authorName, authorEmail } = await this.extractAuthorEmail(
+        await page.$eval('div.ab_byline', (element) =>
+          element.textContent.trim(),
+        ),
       );
-      console.log(`Author Name: ${authorName}`);
 
       // Extract article body (assuming it's in a specific class)
-      const articleBody = await page.$eval(
-        '.article-body',
-        (element) => element.textContent,
+      const articleBody = await page.$eval('.article_body', (element) =>
+        element.textContent.trim(),
       );
       console.log(`Article Body: ${articleBody}`);
 
       // Ensure categories and media have default values
       const defaultCategories: string[] = [];
-      const defaultMedia: string = '조선일보';
+      const defaultMedia: string = '동아일보';
 
       // Extract and parse the date
       const dateText = await page.$eval(
-        '.inputDate',
+        'p.date time',
         (element) => element.textContent,
       );
       const createdAt = this.parseDate(dateText);
@@ -109,45 +101,47 @@ export class ScrapingService {
     }
   }
 
-  private async extractAuthorEmail(page: puppeteer.Page): Promise<string> {
-    const authorEmailWithQuery = await page.$eval(
-      '.author-card--content-header a[href^="mailto:"]',
-      (element) => {
-        const emailLink = element.getAttribute('href');
-        return emailLink ? decodeURIComponent(emailLink.substr(7)) : '';
-      },
-    );
+  private async extractAuthorEmail(bylineText: string) {
+    // 정규식을 사용하여 기자 이름과 유형을 추출
+    const match = bylineText.match(/^(.*?) (기자|특파원)/);
+    const name = match ? `${match[1].trim()} ${match[2]}` : '';
 
-    // Remove query parameters (?body=...) from the email address
-    return authorEmailWithQuery.split('?')[0];
+    // 이메일 부분을 추출
+    const emailMatch = bylineText.match(
+      /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/,
+    );
+    const email = emailMatch ? emailMatch[1] : '';
+
+    return { authorName: name, authorEmail: email };
   }
 
   private parseDate(dateText: string): Date | null {
-    const match = dateText.match(/\d{4}\.\d{2}\.\d{2}\. \d{2}:\d{2}/);
+    const match = dateText.match(/\d{4}\.\d{2}\.\d{2}\s\d{2}:\d{2}/);
     if (match) {
-      return new Date(match[0].replace(/\./g, '/')); // Convert the date string to a valid Date object
+      const dateString = match[0].replace(/\./g, '/'); // '.'을 '/'로 변경하여 Date 생성
+      return new Date(dateString);
     }
     return null;
   }
 
-  async crawlChosunNational() {
+  async crawlDonga() {
     const browser = await puppeteer.launch({ headless: 'new' });
     const page = await browser.newPage();
 
     try {
-      for (const category of ScrapingService.categories) {
-        const url = `https://www.chosun.com/${category}/`;
+      for (const category of DongaService.categories) {
+        const url = `https://www.donga.com/news/${category}/List`;
         await page.goto(url, { waitUntil: 'domcontentloaded' });
 
         const articles = await page.$$(
-          'div.story-card-wrapper a.story-card__headline',
+          '.contents_bottom .story_list .headline a',
         );
 
-        for (let i = 0; i < Math.min(10, articles.length); i++) {
+        for (let i = 10; i < Math.min(20, articles.length); i++) {
           const article = articles[i];
           const link = await page.evaluate((el) => el.href, article);
           console.log(`Link: ${link}`);
-          await this.crawlChosunArticle(link, [
+          await this.crawlDongaArticle(link, [
             this.mapCategoryToKorean(category),
           ]);
         }

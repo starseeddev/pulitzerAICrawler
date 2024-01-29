@@ -49,19 +49,17 @@ export class DongaService {
       await page.goto(link, { waitUntil: 'domcontentloaded' });
 
       // Extract the title
-      const title = await page.$eval('h1.headline', (element) =>
+      const title = await page.$eval('.article_title .title', (element) =>
         element.textContent.trim(),
       );
       console.log(`Title: ${title}`);
 
       const { authorName, authorEmail } = await this.extractAuthorEmail(
-        await page.$eval('div.ab_byline', (element) =>
-          element.textContent.trim(),
-        ),
+        await page.$eval('.report a', (element) => element),
       );
 
       // Extract article body (assuming it's in a specific class)
-      const articleBody = await page.$eval('.article_body', (element) =>
+      const articleBody = await page.$eval('#article_txt', (element) =>
         element.textContent.trim(),
       );
       console.log(`Article Body: ${articleBody}`);
@@ -72,7 +70,7 @@ export class DongaService {
 
       // Extract and parse the date
       const dateText = await page.$eval(
-        'p.date time',
+        '.title_foot .date01',
         (element) => element.textContent,
       );
       const createdAt = this.parseDate(dateText);
@@ -101,24 +99,27 @@ export class DongaService {
     }
   }
 
-  private async extractAuthorEmail(bylineText: string) {
-    // 정규식을 사용하여 기자 이름과 유형을 추출
-    const match = bylineText.match(/^(.*?) (기자|특파원)/);
-    const name = match ? `${match[1].trim()} ${match[2]}` : '';
+  private async extractAuthorEmail(anchorTagElement: Element) {
+    // <a> 태그 요소를 선택합니다.
+    const aTag = anchorTagElement as HTMLAnchorElement;
 
-    // 이메일 부분을 추출
-    const emailMatch = bylineText.match(
-      /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/,
-    );
-    const email = emailMatch ? emailMatch[1] : '';
+    if (aTag) {
+      // href 속성에서 이메일을 추출합니다.
+      const email = aTag.getAttribute('href').split(':')[1];
 
-    return { authorName: name, authorEmail: email };
+      // <span> 태그에서 기자 이름을 추출합니다.
+      const name = aTag.querySelector('.name')?.textContent?.trim() || '';
+
+      return { authorName: name, authorEmail: email };
+    }
+
+    return { authorName: '', authorEmail: '' }; // <a> 태그가 없는 경우 빈 문자열 반환
   }
 
   private parseDate(dateText: string): Date | null {
-    const match = dateText.match(/\d{4}\.\d{2}\.\d{2}\s\d{2}:\d{2}/);
+    const match = dateText.match(/\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}/);
     if (match) {
-      const dateString = match[0].replace(/\./g, '/'); // '.'을 '/'로 변경하여 Date 생성
+      const dateString = match[0]; // 날짜 형식이 YYYY-MM-DD HH:mm
       return new Date(dateString);
     }
     return null;
@@ -133,9 +134,7 @@ export class DongaService {
         const url = `https://www.donga.com/news/${category}/List`;
         await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-        const articles = await page.$$(
-          '.contents_bottom .story_list .headline a',
-        );
+        const articles = await page.$$('#content .articleList .tit a');
 
         for (let i = 10; i < Math.min(20, articles.length); i++) {
           const article = articles[i];

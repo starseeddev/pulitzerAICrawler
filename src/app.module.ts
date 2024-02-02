@@ -10,6 +10,7 @@ import { Reporter } from './entities/reporter.entity';
 import { ReportersService } from './reporters/reporters.service';
 import { ArticlesService } from './articles/articles.service';
 import { DongaService } from './scrapings/donga.service';
+import { HaniService } from './scrapings/hani.service';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { DongaService } from './scrapings/donga.service';
     ChosunService,
     JoongangService,
     DongaService,
+    HaniService,
     ArticlesService,
     ReportersService,
   ],

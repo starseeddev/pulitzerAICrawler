@@ -4,16 +4,8 @@ import { ReportersService } from '../reporters/reporters.service';
 import { ArticlesService } from '../articles/articles.service';
 
 @Injectable()
-export class JoongangService {
-  private static readonly categories = [
-    'money',
-    'politics',
-    'society',
-    'lifestyle',
-    'world',
-    'sports',
-    'culture',
-  ];
+export class SedailyService {
+  private static readonly categories = ['GA', 'GB', 'GC', 'GE', 'GK', 'GF'];
 
   constructor(
     private readonly reportersService: ReportersService,
@@ -22,26 +14,24 @@ export class JoongangService {
 
   private mapCategoryToKorean(category: string): string {
     switch (category) {
-      case 'money':
+      case 'GA':
         return '경제';
-      case 'politics':
-        return '정치';
-      case 'society':
+      case 'GB':
+        return '경제';
+      case 'GC':
+        return '경제';
+      case 'GK':
         return '사회';
-      case 'world':
+      case 'GF':
         return '국제';
-      case 'lifestyle':
-        return '문화';
-      case 'sports':
-        return '스포츠';
-      case 'culture':
-        return '문화';
+      case 'GE':
+        return '정치';
       default:
         return category;
     }
   }
 
-  async crawlJoongangArticle(link: string, categories: string[]) {
+  async crawlSedailyArticle(link: string, categories: string[]) {
     try {
       const browser = await puppeteer.launch({ headless: 'new' });
       const page = await browser.newPage();
@@ -49,30 +39,34 @@ export class JoongangService {
       await page.goto(link, { waitUntil: 'domcontentloaded' });
 
       // Extract the title
-      const title = await page.$eval('h1.headline', (element) =>
+      const title = await page.$eval('h1.art_tit', (element) =>
         element.textContent.trim(),
       );
       console.log(`Title: ${title}`);
 
-      const { authorName, authorEmail } = await this.extractAuthorEmail(
-        await page.$eval('div.ab_byline', (element) =>
-          element.textContent.trim(),
-        ),
+      const authorName = await page.$eval(
+        '.reporter_header .name a',
+        (element) => element.textContent.trim(),
+      );
+
+      const authorEmail = await page.$eval(
+        '.reporter_header .mail a',
+        (element) => element.textContent.trim(),
       );
 
       // Extract article body (assuming it's in a specific class)
-      const articleBody = await page.$eval('.article_body', (element) =>
+      const articleBody = await page.$eval('.article_view', (element) =>
         element.textContent.trim(),
       );
       console.log(`Article Body: ${articleBody}`);
 
       // Ensure categories and media have default values
       const defaultCategories: string[] = [];
-      const defaultMedia: string = '중앙일보';
+      const defaultMedia: string = '서울경제';
 
       // Extract and parse the date
       const dateText = await page.$eval(
-        'p.date time',
+        '.article_info .url_txt',
         (element) => element.textContent,
       );
       const createdAt = this.parseDate(dateText);
@@ -101,20 +95,6 @@ export class JoongangService {
     }
   }
 
-  private async extractAuthorEmail(bylineText: string) {
-    // 정규식을 사용하여 기자 이름과 유형을 추출
-    const match = bylineText.match(/^(.*?) (기자|특파원)/);
-    const name = match ? `${match[1].trim()} ${match[2]}` : '';
-
-    // 이메일 부분을 추출
-    const emailMatch = bylineText.match(
-      /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/,
-    );
-    const email = emailMatch ? emailMatch[1] : '';
-
-    return { authorName: name, authorEmail: email };
-  }
-
   private parseDate(dateText: string): Date | null {
     const match = dateText.match(/\d{4}\.\d{2}\.\d{2}\s\d{2}:\d{2}/);
     if (match) {
@@ -124,24 +104,24 @@ export class JoongangService {
     return null;
   }
 
-  async crawlJoongang() {
+  async crawlSedaily() {
     const browser = await puppeteer.launch({ headless: 'new' });
     const page = await browser.newPage();
 
     try {
-      for (const category of JoongangService.categories) {
-        const url = `https://www.joongang.co.kr/${category}/`;
+      for (const category of SedailyService.categories) {
+        const url = `https://www.sedaily.com/v/NewsMain/${category}`;
         await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-        const articles = await page.$$(
-          '.contents_bottom .story_list .headline a',
-        );
+        const articles = await page.$$('.sub_main .sub_news_list .thumb a');
+
+        console.log('articlesarticlesarticlesarticles', articles);
 
         for (let i = 0; i < Math.min(10, articles.length); i++) {
           const article = articles[i];
           const link = await page.evaluate((el) => el.href, article);
           console.log(`Link: ${link}`);
-          await this.crawlJoongangArticle(link, [
+          await this.crawlSedailyArticle(link, [
             this.mapCategoryToKorean(category),
           ]);
         }

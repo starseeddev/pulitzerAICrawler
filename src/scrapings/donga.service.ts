@@ -45,7 +45,7 @@ export class DongaService {
     try {
       const browser = await puppeteer.launch({ headless: 'new' });
       const page = await browser.newPage();
-
+      page.setDefaultNavigationTimeout(0);
       await page.goto(link, { waitUntil: 'domcontentloaded' });
 
       // Extract the title
@@ -128,6 +128,7 @@ export class DongaService {
   async crawlDonga() {
     const browser = await puppeteer.launch({ headless: 'new' });
     const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(0);
 
     try {
       for (const category of DongaService.categories) {

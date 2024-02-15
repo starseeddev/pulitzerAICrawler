@@ -11,6 +11,9 @@ import { ReportersService } from './reporters/reporters.service';
 import { ArticlesService } from './articles/articles.service';
 import { DongaService } from './scrapings/donga.service';
 import { HaniService } from './scrapings/hani.service';
+import { MKService } from './scrapings/mK.service';
+import { HankyungService } from './scrapings/hankyung.service';
+import { SedailyService } from './scrapings/sedaily.service';
 
 @Module({
   imports: [
@@ -39,6 +42,9 @@ import { HaniService } from './scrapings/hani.service';
     JoongangService,
     DongaService,
     HaniService,
+    MKService,
+    HankyungService,
+    SedailyService,
     ArticlesService,
     ReportersService,
   ],
